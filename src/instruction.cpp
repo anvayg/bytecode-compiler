@@ -1,6 +1,6 @@
 #include <iostream>
 #include <variant>
-#include "instruction.h"
+#include "../include/instruction.h"
 
 
 Instruction::Instruction(OpCode op, ArgType arg) : opCode(op), arg(arg) {}

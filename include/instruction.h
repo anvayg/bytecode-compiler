@@ -5,7 +5,7 @@
 #include <string>
 #include <variant>
 
-enum OpCode {LOAD_CONST, STORE_NAME, LOAD_NAME};
+enum class OpCode {LOAD_CONST, STORE_NAME, LOAD_NAME};
 
 using ArgType = std::variant<int, std::string>;
 

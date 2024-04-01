@@ -2,7 +2,7 @@
 CXX = /opt/homebrew/opt/llvm@17/bin/clang++
 
 # Source files
-SRCS = src/interpreter.cpp src/instruction.cpp
+SRCS = src/interpreter.cpp src/instruction.cpp src/environment.cpp
 
 # Object files
 OBJS = $(addprefix build/, $(notdir $(SRCS:.cpp=.o)))
