@@ -10,11 +10,10 @@ enum class OpCode {LOAD_CONST, STORE_NAME, LOAD_NAME};
 using ArgType = std::variant<int, std::string>;
 
 class Instruction {
-private:
+public:
     OpCode opCode;
     ArgType arg;
 
-public:
     Instruction(OpCode op, ArgType arg = nullptr);
 
     friend std::ostream& operator<<(std::ostream& os, const Instruction& instr);
