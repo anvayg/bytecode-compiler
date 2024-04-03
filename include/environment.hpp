@@ -6,10 +6,9 @@
 #include <unordered_map>
 #include "instruction.hpp"
 
-class Environment {
-// Go with ints as the only values for now
 using Table = std::unordered_map<std::string, ValueType>;
 
+class Environment {
 private:
     Table table;
     Environment* parent;

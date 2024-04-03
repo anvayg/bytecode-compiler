@@ -18,7 +18,7 @@ ValueType Environment::lookup(std::string name) {
     return val->second;
 }
 
-Environment::Table& Environment::resolve(std::string name) {
+Table& Environment::resolve(std::string name) {
     auto val = this->table.find(name);
     if (val != this->table.end()) {
         return this->table;

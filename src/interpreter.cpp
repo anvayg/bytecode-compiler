@@ -3,6 +3,7 @@
 #include <variant>
 #include "../include/instruction.hpp"
 #include "../include/interpreter.hpp"
+#include "../include/environment.hpp"
 
 namespace interpreter {
     Code compile(Expression exp) {
@@ -17,7 +18,7 @@ namespace interpreter {
             if (std::holds_alternative<int>(subexp)) {
                 ins.push_back(Instruction(OpCode::LOAD_CONST, std::get<int>(subexp)));
             } else {
-                throw std::runtime_error("Not supported");
+                ins.push_back(Instruction(OpCode::LOAD_NAME, std::get<std::string>(subexp)));
             }
         } else if (exp.size() == 3) {
             auto first_exp = exp[0];
@@ -42,7 +43,7 @@ namespace interpreter {
         return ins;
     }
 
-    int eval(Code bytecode) {
+    ValueType eval(Code& bytecode, Environment& env) {
         int program_counter = 0;
         std::stack<ValueType> stack;
 
@@ -53,16 +54,31 @@ namespace interpreter {
 
             if (op == OpCode::LOAD_CONST) {
                 stack.push(ins.arg);
+            } else if (op == OpCode::LOAD_NAME) {
+                // Find name in environment and push corresponding value onto stack
+                if (std::holds_alternative<std::string>(ins.arg)) {
+                    auto val = env.lookup(std::get<std::string>(ins.arg));
+                    stack.push(val);
+                } else {
+                    throw std::runtime_error("Currently not supported");
+                }
+
             } else if (op == OpCode::STORE_NAME) {
+                // Get name from top of stack and add a binding for it in the environment
                 auto name = stack.top();
                 stack.pop();
-                
 
+                if (std::holds_alternative<std::string>(name)) {
+                    env.define(std::get<std::string>(name), ins.arg);
+                } else {
+                    throw std::runtime_error("Currently not supported");
+                }
             } else {
                 throw std::runtime_error("Currently not supported");
             }
         }
 
-        return 0;
+        if (!stack.empty()) return stack.top();
+        else return -1;
     }
 }
