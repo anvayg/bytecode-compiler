@@ -1,6 +1,9 @@
 # Compiler (your compiler path)
 CXX = /opt/homebrew/opt/llvm@17/bin/clang++
 
+# Include directories
+INCLUDE_DIRS = -I include/ /opt/homebrew/Cellar/boost/1.84.0_1/include/
+
 # Source files
 SRCS = src/interpreter.cpp src/instruction.cpp src/environment.cpp
 
@@ -15,7 +18,7 @@ all: $(EXEC)
 
 # Rule to compile object files
 build/%.o: src/%.cpp
-	$(CXX) -I include/ -c $< -o $@
+	$(CXX) $(INCLUDE_DIRS) -c $< -o $@
 
 # Rule to link object files into executable
 $(EXEC): $(OBJS)

@@ -3,7 +3,7 @@
 #include <type_traits>
 #include <variant>
 #include <vector>
-#include "../include/instruction.h"
+#include "../include/instruction.hpp"
 
 namespace interpreter {
     using Expression = std::vector<ArgType>;
