@@ -4,16 +4,16 @@
 
 Environment::Environment(Table env, Environment* parent = nullptr) : table(env), parent(parent) {}
 
-void Environment::define(std::string name, int value) {
+void Environment::define(std::string name, ValueType value) {
     this->table.insert_or_assign(name, value);
 }
 
-void Environment::assign(std::string name, int value) {
+void Environment::assign(std::string name, ValueType value) {
     Table& env = resolve(name);
     env.insert_or_assign(name, value);
 }
 
-int Environment::lookup(std::string name) {
+ValueType Environment::lookup(std::string name) {
     auto val = resolve(name).find(name);
     return val->second;
 }

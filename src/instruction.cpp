@@ -2,7 +2,7 @@
 #include <variant>
 #include "../include/instruction.hpp"
 
-Instruction::Instruction(OpCode op, ArgType arg) : opCode(op), arg(arg) {}
+Instruction::Instruction(OpCode op, ValueType arg) : opCode(op), arg(arg) {}
 
 bool Instruction::operator==(const Instruction& other) const {
     return (this->opCode == other.opCode) && (this->arg == other.arg);

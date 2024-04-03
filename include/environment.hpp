@@ -4,10 +4,11 @@
 #include <ostream>
 #include <string>
 #include <unordered_map>
+#include "instruction.hpp"
 
 class Environment {
 // Go with ints as the only values for now
-using Table = std::unordered_map<std::string, int>;
+using Table = std::unordered_map<std::string, ValueType>;
 
 private:
     Table table;
@@ -16,11 +17,11 @@ private:
 public:
     Environment(Table env, Environment* parent);
 
-    void define(std::string name, int value);
+    void define(std::string name, ValueType value);
 
-    void assign(std::string name, int value);
+    void assign(std::string name, ValueType value);
 
-    int lookup(std::string name);
+    ValueType lookup(std::string name);
 
     Table& resolve(std::string name);
 

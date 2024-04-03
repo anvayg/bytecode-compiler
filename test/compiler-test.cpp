@@ -8,7 +8,7 @@
 
 #include <vector>
 
-using Expression = std::vector<ArgType>;
+using Expression = std::vector<ValueType>;
 using Code = std::vector<Instruction>;
 
 BOOST_AUTO_TEST_CASE(compile_int) {

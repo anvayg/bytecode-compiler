@@ -3,12 +3,10 @@
 
 #include "instruction.hpp"
 #include <vector>
-#include <variant>
 
 namespace interpreter {
     // Alias for expression and code
-    using ArgType = std::variant<int, std::string>;
-    using Expression = std::vector<ArgType>;
+    using Expression = std::vector<ValueType>;
     using Code = std::vector<Instruction>;
 
     // Function to compile expression into bytecode
