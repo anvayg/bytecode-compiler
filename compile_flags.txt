@@ -1,0 +1,2 @@
+-I/opt/homebrew/Cellar/boost/1.84.0_1/include
+-L/opt/homebrew/Cellar/boost/1.84.0_1/lib
