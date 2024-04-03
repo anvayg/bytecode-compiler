@@ -16,6 +16,8 @@ public:
 
     Instruction(OpCode op, ArgType arg = nullptr);
 
+    bool operator==(const Instruction& other) const;
+
     friend std::ostream& operator<<(std::ostream& os, const Instruction& instr);
 };
 

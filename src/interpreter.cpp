@@ -4,28 +4,23 @@
 #include <variant>
 #include <vector>
 #include "../include/instruction.hpp"
+#include "../include/interpreter.hpp"
 
 namespace interpreter {
-    using Expression = std::vector<ArgType>;
-    using Code = std::vector<Instruction>;
-
     Code compile(Expression exp) {
+        Code ins;
         if (exp.size() == 1) {
             auto subexp = exp[0];
-            // Define the visitor
-            auto visitor = [](auto&& arg) -> std::vector<Instruction> {
-                if constexpr (std::is_same_v<decltype(arg), int>) {
-                    Code ins;
-                    ins.push_back(Instruction(OpCode::LOAD_CONST, 5));
-                } else {
-                    throw std::logic_error("Not supported");
-                }
-            };
-            return std::visit(visitor, subexp);
-
+            // Check if the variant holds an int
+            if (std::holds_alternative<int>(subexp)) {
+                ins.push_back(Instruction(OpCode::LOAD_CONST, std::get<int>(subexp)));
+            } else {
+                throw std::logic_error("Not supported");
+            }
         } else {
             throw std::runtime_error("Currently not supported");
         }
+        return ins;
     }
 
     int eval(Code bytecode) {
