@@ -1,6 +1,7 @@
 #ifndef INTERPRETER_HPP
 #define INTERPRETER_HPP
 
+#include "environment.hpp"
 #include "instruction.hpp"
 #include <vector>
 
@@ -13,7 +14,7 @@ namespace interpreter {
     Code compile(Expression exp);
 
     // Function to evaluate bytecode
-    int eval(Code bytecode);
+    ValueType eval(Code& bytecode, Environment& env);
 }
 
 #endif

@@ -12,10 +12,10 @@ using Expression = std::vector<ValueType>;
 using Code = std::vector<Instruction>;
 
 BOOST_AUTO_TEST_CASE(compile_int) {
-    Expression exps = Expression();
-    exps.push_back(5);
-    
-    Code bytecode = interpreter::compile(exps);
-    Instruction i = *bytecode.begin();
-    BOOST_TEST(i == Instruction(OpCode::LOAD_CONST, 5));
+  Expression exps = Expression();
+  exps.push_back(5);
+
+  Code bytecode = interpreter::compile(exps);
+  Instruction i = *bytecode.begin();
+  BOOST_TEST(i == Instruction(OpCode::LOAD_CONST, 5));
 }
