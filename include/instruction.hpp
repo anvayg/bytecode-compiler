@@ -5,7 +5,7 @@
 #include <string>
 #include <variant>
 
-enum class OpCode { LOAD_CONST, STORE_NAME, LOAD_NAME };
+enum class OpCode { LOAD_CONST, STORE_NAME, LOAD_NAME, RELATIVE_JUMP, RELATIVE_JUMP_IF_TRUE };
 
 using ValueType = std::variant<int, std::string>;
 

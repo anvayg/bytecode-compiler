@@ -32,14 +32,44 @@ interpreter::Code interpreter::compile(Expression exp) {
         Code subexp_code = compile(subexp);
         ins.insert(ins.end(), subexp_code.begin(), subexp_code.end());
         ins.push_back(store);
-      }
+      } else
+        throw std::runtime_error("Unsupported instruction");
+    }
+  } else if (exp.size() == 4) {
+    auto first_exp = exp[0];
+    if (std::holds_alternative<std::string>(first_exp)) {
+      std::string first = std::get<std::string>(first_exp);
+      if (first == "if") {
+        // Compile condition, true and false branches
+        Expression cond(exp.begin() + 1, exp.begin() + 2);
+        Code cond_code = compile(cond);
 
+        Expression true_exp(exp.begin() + 2, exp.begin() + 3);
+        Code true_code = compile(true_exp);
+
+        Expression false_exp(exp.begin() + 3, exp.begin() + 4);
+        Code false_code = compile(false_exp);
+
+        // Construct relative jumps
+        Instruction jmp_to_end = Instruction(
+            OpCode::RELATIVE_JUMP, static_cast<int>(true_code.size()));
+        Instruction jmp_to_true =
+            Instruction(OpCode::RELATIVE_JUMP_IF_TRUE,
+                        static_cast<int>(false_code.size()) + 1);
+
+        // Put instructions together
+        ins.insert(ins.end(), cond_code.begin(), cond_code.end());
+        ins.push_back(jmp_to_true);
+        ins.insert(ins.end(), false_code.begin(), false_code.end());
+        ins.push_back(jmp_to_end);
+        ins.insert(ins.end(), true_code.begin(), true_code.end());
+
+      } else
+        throw std::runtime_error("Unsupported instruction");
     } else
-      throw std::runtime_error("Currently not supported");
-
-  } else {
-    throw std::runtime_error("Currently not supported");
-  }
+      throw std::runtime_error("Unsupported instruction");
+  } else
+    throw std::runtime_error("Unsupported supported");
 
   return ins;
 }
@@ -61,21 +91,22 @@ ValueType interpreter::eval(Code &bytecode, Environment &env) {
         auto val = env.lookup(std::get<std::string>(ins.arg));
         stack.push(val);
       } else {
-        throw std::runtime_error("Currently not supported");
+        throw std::runtime_error("Unsupported instruction");
       }
 
     } else if (op == OpCode::STORE_NAME) {
-      // Get name from top of stack and add a binding for it in the environment
+      // Get name from top of stack and add a binding for it in the
+      // environment
       auto name = stack.top();
       stack.pop();
 
       if (std::holds_alternative<std::string>(name)) {
         env.define(std::get<std::string>(name), ins.arg);
       } else {
-        throw std::runtime_error("Currently not supported");
+        throw std::runtime_error("Unsupported instruction");
       }
     } else {
-      throw std::runtime_error("Currently not supported");
+      throw std::runtime_error("Unsupported instruction");
     }
   }
 
