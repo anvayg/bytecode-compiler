@@ -2,6 +2,10 @@
 #include <stdexcept>
 #include <string>
 
+Environment::Environment() {
+    Environment(Table(), nullptr);
+}
+
 Environment::Environment(Table env, Environment *parent = nullptr)
     : table(env), parent(parent) {}
 

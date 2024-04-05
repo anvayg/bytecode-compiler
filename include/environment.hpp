@@ -14,6 +14,8 @@ private:
   Environment *parent;
 
 public:
+  Environment();
+
   Environment(Table env, Environment *parent);
 
   void define(std::string name, ValueType value);
