@@ -93,15 +93,15 @@ ValueType interpreter::eval(Code &bytecode, Environment &env) {
       } else {
         throw std::runtime_error("Unsupported instruction");
       }
-
     } else if (op == OpCode::STORE_NAME) {
       // Get name from top of stack and add a binding for it in the
       // environment
       auto name = stack.top();
       stack.pop();
 
-      if (std::holds_alternative<std::string>(name)) {
-        env.define(std::get<std::string>(name), ins.arg);
+      if (std::holds_alternative<int>(name) &&
+          std::holds_alternative<std::string>(ins.arg)) {
+        env.define(std::get<std::string>(ins.arg), std::get<int>(name));
       } else {
         throw std::runtime_error("Unsupported instruction");
       }
