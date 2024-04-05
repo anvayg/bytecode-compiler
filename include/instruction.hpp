@@ -14,7 +14,7 @@ public:
   OpCode opCode;
   ValueType arg;
 
-  Instruction(OpCode op, ValueType arg = nullptr);
+  Instruction(OpCode op, ValueType arg);
 
   bool operator==(const Instruction &other) const;
 

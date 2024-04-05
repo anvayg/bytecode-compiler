@@ -21,12 +21,13 @@ interpreter::Code interpreter::compile(Expression exp) {
           Instruction(OpCode::LOAD_NAME, std::get<std::string>(subexp)));
     }
   } else if (exp.size() == 3) {
+    // [val, x, 5]
     auto first_exp = exp[0];
     if (std::holds_alternative<std::string>(first_exp)) {
       std::string first = std::get<std::string>(first_exp);
       if (first == "val") {
         auto name = exp[1];
-        Instruction store = Instruction(OpCode::STORE_NAME, name);
+        Instruction store(OpCode::STORE_NAME, name);
 
         Expression subexp(exp.begin() + 2, exp.end());
         Code subexp_code = compile(subexp);
@@ -51,11 +52,10 @@ interpreter::Code interpreter::compile(Expression exp) {
         Code false_code = compile(false_exp);
 
         // Construct relative jumps
-        Instruction jmp_to_end = Instruction(
-            OpCode::RELATIVE_JUMP, static_cast<int>(true_code.size()));
-        Instruction jmp_to_true =
-            Instruction(OpCode::RELATIVE_JUMP_IF_TRUE,
-                        static_cast<int>(false_code.size()) + 1);
+        Instruction jmp_to_end(OpCode::RELATIVE_JUMP,
+                               static_cast<int>(true_code.size()));
+        Instruction jmp_to_true(OpCode::RELATIVE_JUMP_IF_TRUE,
+                                static_cast<int>(false_code.size()) + 1);
 
         // Put instructions together
         ins.insert(ins.end(), cond_code.begin(), cond_code.end());
@@ -105,6 +105,14 @@ ValueType interpreter::eval(Code &bytecode, Environment &env) {
       } else {
         throw std::runtime_error("Unsupported instruction");
       }
+    } else if (op == OpCode::RELATIVE_JUMP_IF_TRUE) {
+        auto cond = stack.top();
+        stack.pop();
+
+        if(std::get<int>(cond)) program_counter += std::get<int>(ins.arg);
+        
+    } else if (op == OpCode::RELATIVE_JUMP) {
+        program_counter += std::get<int>(ins.arg);
     } else {
       throw std::runtime_error("Unsupported instruction");
     }
