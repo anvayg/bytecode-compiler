@@ -11,13 +11,13 @@ class Function {
 
 public:
   Function(std::vector<ValueType> params, interpreter::Expression body,
-           Environment& env);
+           Environment &env);
 
   std::vector<ValueType> params;
   interpreter::Expression body;
-  Environment& env;
+  Environment &env;
 
-  friend std::ostream &operator<<(std::ostream &os, const Function& f);
+  friend std::ostream &operator<<(std::ostream &os, const Function &f);
 };
 
 #endif
