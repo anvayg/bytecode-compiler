@@ -1,11 +1,74 @@
 #include "../include/interpreter.hpp"
+#include "../include/ast.hpp"
 #include "../include/environment.hpp"
 #include "../include/instruction.hpp"
 #include <stack>
 #include <stdexcept>
 #include <variant>
+#include <vector>
 
-interpreter::Code interpreter::compile(Expression exp) {
+interpreter::Code interpreter::compile(Expression &e) {
+  Compiler compiler;
+  return e.accept(compiler);
+}
+
+std::vector<Instruction> Compiler::visit(Constant &constant) {
+  std::vector<Instruction> ins;
+  ins.push_back(Instruction(OpCode::LOAD_CONST, constant.getValue()));
+  return ins;
+}
+
+std::vector<Instruction> Compiler::visit(StringConstant &constant) {
+  std::vector<Instruction> ins;
+  ins.push_back(Instruction(OpCode::LOAD_NAME, constant.getValue()));
+  return ins;
+}
+
+std::vector<Instruction> Compiler::visit(BinaryOperation &binOp) {
+  std::vector<Instruction> ins;
+
+  return ins;
+}
+
+std::vector<Instruction> Compiler::visit(ExpressionList &list) {
+  std::vector<Instruction> ins;
+  const auto &exps = list.getExpressions();
+
+  if (exps.size() == 3) {
+    auto &first = exps[0];
+    const StringConstant *strConstPtr =
+        dynamic_cast<const StringConstant *>(first.get());
+    if (strConstPtr && strConstPtr->getValue() == "val") {
+      auto &name = exps[1];
+      const StringConstant *strConstPtr =
+          dynamic_cast<const StringConstant *>(name.get());
+
+      if (strConstPtr) {
+        Instruction store(OpCode::STORE_NAME, strConstPtr->getValue());
+
+        auto &subexp = exps[2];
+        std::vector<Instruction> subexp_code = subexp.get()->accept(*this);
+
+        ins.insert(ins.end(), subexp_code.begin(), subexp_code.end());
+        ins.push_back(store);
+      } else {
+        throw std::runtime_error("Unsupported instruction");
+      }
+
+    } else {
+      throw std::runtime_error("Unsupported instruction");
+    }
+
+  } else if (exps.size() == 4) {
+
+  } else {
+    throw std::runtime_error("Unsupported instruction");
+  }
+
+  return ins;
+}
+
+interpreter::Code interpreter::compile(std::vector<ValueType> exp) {
   Code ins;
 
   if (exp.size() == 0) {
@@ -29,7 +92,7 @@ interpreter::Code interpreter::compile(Expression exp) {
         auto name = exp[1];
         Instruction store(OpCode::STORE_NAME, name);
 
-        Expression subexp(exp.begin() + 2, exp.end());
+        std::vector<ValueType> subexp(exp.begin() + 2, exp.end());
         Code subexp_code = compile(subexp);
         ins.insert(ins.end(), subexp_code.begin(), subexp_code.end());
         ins.push_back(store);
@@ -42,13 +105,13 @@ interpreter::Code interpreter::compile(Expression exp) {
       std::string first = std::get<std::string>(first_exp);
       if (first == "if") {
         // Compile condition, true and false branches
-        Expression cond(exp.begin() + 1, exp.begin() + 2);
+        std::vector<ValueType> cond(exp.begin() + 1, exp.begin() + 2);
         Code cond_code = compile(cond);
 
-        Expression true_exp(exp.begin() + 2, exp.begin() + 3);
+        std::vector<ValueType> true_exp(exp.begin() + 2, exp.begin() + 3);
         Code true_code = compile(true_exp);
 
-        Expression false_exp(exp.begin() + 3, exp.begin() + 4);
+        std::vector<ValueType> false_exp(exp.begin() + 3, exp.begin() + 4);
         Code false_code = compile(false_exp);
 
         // Construct relative jumps
@@ -106,13 +169,14 @@ ValueType interpreter::eval(Code &bytecode, Environment &env) {
         throw std::runtime_error("Unsupported instruction");
       }
     } else if (op == OpCode::RELATIVE_JUMP_IF_TRUE) {
-        auto cond = stack.top();
-        stack.pop();
+      auto cond = stack.top();
+      stack.pop();
 
-        if(std::get<int>(cond)) program_counter += std::get<int>(ins.arg);
-        
-    } else if (op == OpCode::RELATIVE_JUMP) {
+      if (std::get<int>(cond))
         program_counter += std::get<int>(ins.arg);
+
+    } else if (op == OpCode::RELATIVE_JUMP) {
+      program_counter += std::get<int>(ins.arg);
     } else {
       throw std::runtime_error("Unsupported instruction");
     }
