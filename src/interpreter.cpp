@@ -55,6 +55,19 @@ std::vector<Instruction> Compiler::visit(ExpressionList &list) {
         throw std::runtime_error("Unsupported instruction");
       }
 
+    } else if (strConstPtr && strConstPtr->getValue() == "lambda") {
+      auto& params = exps[1];
+      // TODO: Fix, params should be in a list
+      std::vector<Instruction> param_ins = params.get()->accept(*this);
+      Instruction load_params(OpCode::LOAD_CONST, param_ins);
+
+      auto& body = exps[2];
+      std::vector<Instruction> body_ins = body.get()->accept(*this);
+      Instruction load_body(OpCode::LOAD_CONST, body_ins);
+
+      Instruction mk_function(OpCode::MAKE_FUNCTION, 1);
+
+      // TODO: Put instructions together
     } else {
       throw std::runtime_error("Unsupported instruction");
     }
@@ -86,9 +99,6 @@ std::vector<Instruction> Compiler::visit(ExpressionList &list) {
       ins.insert(ins.end(), false_code.begin(), false_code.end());
       ins.push_back(jmp_to_end);
       ins.insert(ins.end(), true_code.begin(), true_code.end());
-
-    } else if (strConstPtr && strConstPtr->getValue() == "lambda") {
-      
 
     } else {
       throw std::runtime_error("Unsupported instruction");
