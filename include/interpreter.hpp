@@ -9,10 +9,8 @@
 namespace interpreter {
 using Code = std::vector<Instruction>;
 
-Code compile(Expression& exp);
-
 // Function to compile expression into bytecode
-Code compile(std::vector<ValueType> exp);
+Code compile(Expression& exp);
 
 // Function to evaluate bytecode
 ValueType eval(Code &bytecode, Environment &env);
