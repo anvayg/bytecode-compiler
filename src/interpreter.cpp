@@ -4,7 +4,7 @@
 #include "../include/instruction.hpp"
 #include <stack>
 #include <stdexcept>
-#include <variant>
+#include <string>
 #include <vector>
 
 interpreter::Code interpreter::compile(Expression &e) {
@@ -86,6 +86,10 @@ std::vector<Instruction> Compiler::visit(ExpressionList &list) {
       ins.insert(ins.end(), false_code.begin(), false_code.end());
       ins.push_back(jmp_to_end);
       ins.insert(ins.end(), true_code.begin(), true_code.end());
+
+    } else if (strConstPtr && strConstPtr->getValue() == "lambda") {
+      
+
     } else {
       throw std::runtime_error("Unsupported instruction");
     }
@@ -110,8 +114,8 @@ ValueType interpreter::eval(Code &bytecode, Environment &env) {
       stack.push(ins.arg);
     } else if (op == OpCode::LOAD_NAME) {
       // Find name in environment and push corresponding value onto stack
-      if (std::holds_alternative<std::string>(ins.arg)) {
-        auto val = env.lookup(std::get<std::string>(ins.arg));
+      if (ins.arg.type() == typeid(std::string)) {
+        auto val = env.lookup(boost::get<std::string>(ins.arg));
         stack.push(val);
       } else {
         throw std::runtime_error("Unsupported instruction");
@@ -122,9 +126,8 @@ ValueType interpreter::eval(Code &bytecode, Environment &env) {
       auto name = stack.top();
       stack.pop();
 
-      if (std::holds_alternative<int>(name) &&
-          std::holds_alternative<std::string>(ins.arg)) {
-        env.define(std::get<std::string>(ins.arg), std::get<int>(name));
+      if (ins.arg.type() == typeid(std::string)) {
+        env.define(boost::get<std::string>(ins.arg), name);
       } else {
         throw std::runtime_error("Unsupported instruction");
       }
@@ -132,11 +135,11 @@ ValueType interpreter::eval(Code &bytecode, Environment &env) {
       auto cond = stack.top();
       stack.pop();
 
-      if (std::get<int>(cond))
-        program_counter += std::get<int>(ins.arg);
+      if (boost::get<int>(cond))
+        program_counter += boost::get<int>(ins.arg);
 
     } else if (op == OpCode::RELATIVE_JUMP) {
-      program_counter += std::get<int>(ins.arg);
+      program_counter += boost::get<int>(ins.arg);
     } else {
       throw std::runtime_error("Unsupported instruction");
     }

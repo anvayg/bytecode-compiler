@@ -45,7 +45,7 @@ BOOST_AUTO_TEST_CASE(compile_and_eval_val) {
   // Test evaluation
   Environment env = Environment();
   auto result = interpreter::eval(bytecode, env);
-  BOOST_TEST(std::get<int>(env.lookup("x")) == 5);
+  BOOST_TEST(boost::get<int>(env.lookup("x")) == 5);
 }
 
 BOOST_AUTO_TEST_CASE(compile_and_eval_conditions) {
@@ -83,7 +83,7 @@ BOOST_AUTO_TEST_CASE(compile_and_eval_conditions) {
   // Test evaluation
   Environment env = Environment();
   auto result = interpreter::eval(bytecode, env);
-  BOOST_TEST(std::get<int>(result) == 2);
+  BOOST_TEST(boost::get<int>(result) == 2);
 }
 
 BOOST_AUTO_TEST_CASE(compile_and_eval_conditions_with_vars) {
@@ -103,10 +103,10 @@ BOOST_AUTO_TEST_CASE(compile_and_eval_conditions_with_vars) {
   Environment env = Environment();
   env.define("cond", 1);
   auto result = interpreter::eval(bytecode, env);
-  BOOST_TEST(std::get<int>(result) == 2);
+  BOOST_TEST(boost::get<int>(result) == 2);
 
   env = Environment();
   env.define("cond", 0);
   result = interpreter::eval(bytecode, env);
-  BOOST_TEST(std::get<int>(result) == 3);
+  BOOST_TEST(boost::get<int>(result) == 3);
 }

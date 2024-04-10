@@ -3,13 +3,16 @@
 
 #include <iostream>
 #include <string>
-#include <variant>
+#include <vector>
+#include <boost/variant.hpp>
 
-enum class OpCode { LOAD_CONST, STORE_NAME, LOAD_NAME, RELATIVE_JUMP, RELATIVE_JUMP_IF_TRUE };
+enum class OpCode { LOAD_CONST, STORE_NAME, LOAD_NAME, RELATIVE_JUMP, RELATIVE_JUMP_IF_TRUE, MAKE_FUNCTION };
 
-using ValueType = std::variant<int, std::string>;
+struct Instruction;
 
-class Instruction {
+typedef boost::variant<int, std::string, boost::recursive_wrapper<std::vector<Instruction>>> ValueType;
+
+struct Instruction {
 public:
   OpCode opCode;
   ValueType arg;

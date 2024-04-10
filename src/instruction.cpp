@@ -1,6 +1,5 @@
 #include "../include/instruction.hpp"
 #include <iostream>
-#include <variant>
 
 // Overload the << operator for the OpCode enum class
 std::ostream &operator<<(std::ostream &os, const OpCode &opCode) {
@@ -20,6 +19,9 @@ std::ostream &operator<<(std::ostream &os, const OpCode &opCode) {
   case OpCode::RELATIVE_JUMP_IF_TRUE:
     os << "RELATIVE_JUMP_IF_TRUE";
     break;
+  case OpCode::MAKE_FUNCTION:
+    os << "MAKE_FUNCTION";
+    break;
   }
   return os;
 }
@@ -30,8 +32,28 @@ bool Instruction::operator==(const Instruction &other) const {
   return (this->opCode == other.opCode) && (this->arg == other.arg);
 }
 
+// Define the InstructionPrinter visitor
+struct InstructionPrinter : public boost::static_visitor<void> {
+  std::ostream &os_;
+
+  InstructionPrinter(std::ostream &os) : os_(os) {}
+
+  void operator()(const int &i) const { os_ << "int: " << i; }
+
+  void operator()(const std::string &s) const { os_ << "std::string: " << s; }
+
+  void operator()(const std::vector<Instruction> &instructions) const {
+    os_ << "std::vector<Instruction>: [";
+    for (const auto &instr : instructions) {
+      os_ << instr << " ";
+    }
+    os_ << "]";
+  }
+};
+
 std::ostream &operator<<(std::ostream &os, const Instruction &instr) {
-  os << "OpCode: " << instr.opCode << ", Arg: ";
-  std::visit([&os](const auto &arg) { os << arg; }, instr.arg);
+  os << "Instruction(opCode=" << instr.opCode << ", arg=";
+  boost::apply_visitor(InstructionPrinter(os), instr.arg);
+  os << ")";
   return os;
 }
