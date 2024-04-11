@@ -1,5 +1,6 @@
-#include "../include/instruction.hpp"
+#include "../include/ast.hpp"
 #include <iostream>
+#include <memory>
 
 // Overload the << operator for the OpCode enum class
 std::ostream &operator<<(std::ostream &os, const OpCode &opCode) {
@@ -48,6 +49,10 @@ struct InstructionPrinter : public boost::static_visitor<void> {
       os_ << param << ", ";
     }
     os_ << "]";
+  }
+
+  void operator()(const std::shared_ptr<Function> ptr) const {
+    // TODO
   }
 
   void operator()(const std::vector<Instruction> &instructions) const {

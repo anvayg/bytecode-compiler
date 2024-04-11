@@ -3,17 +3,76 @@
 #ifndef EXPRESSION_HPP
 #define EXPRESSION_HPP
 
-#include "instruction.hpp"
 #include <iostream>
 #include <memory>
 #include <string>
 #include <vector>
+#include <boost/variant.hpp>
 
 // Forward declarations
 class Constant;
 class BinaryOperation;
 class StringConstant;
 class ExpressionList;
+class Instruction;
+class Function;
+class Environment;
+class Expression;
+
+// Available Opcodes
+enum class OpCode {
+  LOAD_CONST,
+  STORE_NAME,
+  LOAD_NAME,
+  RELATIVE_JUMP,
+  RELATIVE_JUMP_IF_TRUE,
+  MAKE_FUNCTION
+};
+
+typedef boost::variant<int, std::string, std::vector<std::string>,
+                       std::shared_ptr<Function>,
+                       boost::recursive_wrapper<std::vector<Instruction>>>
+    ValueType;
+
+// Definition of Instruction
+class Instruction {
+public:
+  OpCode opCode;
+  ValueType arg;
+
+  Instruction(OpCode op, ValueType arg);
+
+  bool operator==(const Instruction &other) const;
+
+  friend std::ostream &operator<<(std::ostream &os, const Instruction &instr);
+};
+
+// Definition of Environment
+using Table = std::unordered_map<std::string, ValueType>;
+
+class Environment {
+private:
+  Table table;
+  Environment *parent;
+
+public:
+  Environment();
+
+  Environment(Table env, Environment *parent);
+
+  void define(std::string name, ValueType value);
+
+  void assign(std::string name, ValueType value);
+
+  ValueType lookup(std::string name);
+
+  Table &resolve(std::string name);
+
+  bool isDefined(std::string name);
+
+  friend std::ostream &operator<<(std::ostream &os, const Environment &env);
+};
+
 
 // Visitor interface
 class ExpressionVisitor {
@@ -25,7 +84,7 @@ public:
   virtual void visit(ExpressionList &expressionList) = 0;
 };
 
-// Visitor interface
+// Visitor interface for compilation
 class CompilerVisitor {
 public:
   virtual ~CompilerVisitor() {}
@@ -146,6 +205,20 @@ public:
   std::vector<Instruction> visit(BinaryOperation &binaryOperation) override;
   std::vector<Instruction> visit(StringConstant &stringConstant) override;
   std::vector<Instruction> visit(ExpressionList &expressionList) override;
+};
+
+// Definition of Function
+class Function {
+
+public:
+  Function(std::vector<ValueType> params, std::vector<Instruction> body,
+           Environment env);
+
+  std::vector<ValueType> params;
+  std::vector<Instruction> body;
+  Environment env;
+
+  friend std::ostream &operator<<(std::ostream &os, const Function &f);
 };
 
 #endif // EXPRESSION_HPP

@@ -6,7 +6,7 @@
 #include "boost/test/unit_test_suite.hpp"
 #include <boost/test/unit_test.hpp>
 
-#include "../include/instruction.hpp"
+#include "../include/ast.hpp"
 #include "../include/interpreter.hpp"
 
 #include <vector>

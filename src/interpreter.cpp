@@ -1,7 +1,5 @@
 #include "../include/interpreter.hpp"
 #include "../include/ast.hpp"
-#include "../include/environment.hpp"
-#include "../include/instruction.hpp"
 #include <memory>
 #include <stack>
 #include <stdexcept>

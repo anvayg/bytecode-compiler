@@ -2,8 +2,6 @@
 #define INTERPRETER_HPP
 
 #include "ast.hpp"
-#include "environment.hpp"
-#include "instruction.hpp"
 #include <vector>
 
 namespace interpreter {
