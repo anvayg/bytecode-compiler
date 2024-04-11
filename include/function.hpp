@@ -7,7 +7,7 @@
 #include <ostream>
 #include <vector>
 
-class Function {
+struct Function {
 
 public:
   Function(std::vector<ValueType> params, Expression& body,

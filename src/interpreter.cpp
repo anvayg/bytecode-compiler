@@ -2,6 +2,7 @@
 #include "../include/ast.hpp"
 #include "../include/environment.hpp"
 #include "../include/instruction.hpp"
+#include <memory>
 #include <stack>
 #include <stdexcept>
 #include <string>
@@ -56,18 +57,35 @@ std::vector<Instruction> Compiler::visit(ExpressionList &list) {
       }
 
     } else if (strConstPtr && strConstPtr->getValue() == "lambda") {
-      auto& params = exps[1];
-      // TODO: Fix, params should be in a list
-      std::vector<Instruction> param_ins = params.get()->accept(*this);
-      Instruction load_params(OpCode::LOAD_CONST, param_ins);
+      auto &params = exps[1];
+      const ExpressionList *listPtr =
+          dynamic_cast<const ExpressionList *>(std::move(params.get()));
+      if (!listPtr) throw std::runtime_error("Invalid params");
+      else {
+        // Make list of parameters;
+        std::vector<std::string> paramStrings;
+        for (const auto& ptr : listPtr->getExpressions()) {
+          const StringConstant *strConstPtr =
+          dynamic_cast<const StringConstant *>(ptr.get());
 
-      auto& body = exps[2];
-      std::vector<Instruction> body_ins = body.get()->accept(*this);
-      Instruction load_body(OpCode::LOAD_CONST, body_ins);
+          if (!strConstPtr) throw std::runtime_error("Invalid param");
+          else paramStrings.push_back(strConstPtr->getValue());
+        }
+        // Instruction for loading parameters
+        Instruction load_params(OpCode::LOAD_CONST, paramStrings);
 
-      Instruction mk_function(OpCode::MAKE_FUNCTION, 1);
+        // Instruction for loading body
+        auto &body = exps[2];
+        std::vector<Instruction> body_ins = body.get()->accept(*this);
+        Instruction load_body(OpCode::LOAD_CONST, body_ins);
 
-      // TODO: Put instructions together
+        Instruction mk_function(OpCode::MAKE_FUNCTION, 1);
+
+        // Put instructions together
+        ins.push_back(load_params);
+        ins.push_back(load_body);
+        ins.push_back(mk_function);
+      }
     } else {
       throw std::runtime_error("Unsupported instruction");
     }
@@ -150,6 +168,8 @@ ValueType interpreter::eval(Code &bytecode, Environment &env) {
 
     } else if (op == OpCode::RELATIVE_JUMP) {
       program_counter += boost::get<int>(ins.arg);
+    } else if (op == OpCode::MAKE_FUNCTION) {
+      
     } else {
       throw std::runtime_error("Unsupported instruction");
     }

@@ -13,7 +13,7 @@ TEST_INCLUDE_DIRS = -I/opt/homebrew/Cellar/boost/1.84.0_1/include/
 TEST_FLAGS = -L/opt/homebrew/Cellar/boost/1.84.0_1/lib -l boost_unit_test_framework
 
 # Source files
-SRCS = src/interpreter.cpp src/instruction.cpp src/environment.cpp src/ast.cpp
+SRCS = src/interpreter.cpp src/instruction.cpp src/environment.cpp src/ast.cpp src/function.cpp
 
 # List of test source files
 TEST_SRCS = test/compiler-test.cpp

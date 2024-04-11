@@ -110,3 +110,7 @@ BOOST_AUTO_TEST_CASE(compile_and_eval_conditions_with_vars) {
   result = interpreter::eval(bytecode, env);
   BOOST_TEST(boost::get<int>(result) == 3);
 }
+
+BOOST_AUTO_TEST_CASE(compile_function) {
+  
+}

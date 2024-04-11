@@ -42,12 +42,20 @@ struct InstructionPrinter : public boost::static_visitor<void> {
 
   void operator()(const std::string &s) const { os_ << "std::string: " << s; }
 
+  void operator()(const std::vector<std::string> &v) const {
+    os_ << "[";
+    for (const auto &param : v) {
+      os_ << param << ", ";
+    }
+    os_ << "]";
+  }
+
   void operator()(const std::vector<Instruction> &instructions) const {
-    os_ << "std::vector<Instruction>: [";
+    os_ << "Instructions: [";
     for (const auto &instr : instructions) {
       os_ << instr << " ";
     }
-    os_ << "]";
+    os_ << "]\n";
   }
 };
 
