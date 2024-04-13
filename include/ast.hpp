@@ -26,7 +26,8 @@ enum class OpCode {
   LOAD_NAME,
   RELATIVE_JUMP,
   RELATIVE_JUMP_IF_TRUE,
-  MAKE_FUNCTION
+  MAKE_FUNCTION,
+  CALL_FUNCTION
 };
 
 typedef boost::variant<int, std::string, std::vector<std::string>,
@@ -211,10 +212,10 @@ public:
 class Function {
 
 public:
-  Function(std::vector<ValueType> params, std::vector<Instruction> body,
+  Function(std::vector<std::string> params, std::vector<Instruction> body,
            Environment env);
 
-  std::vector<ValueType> params;
+  std::vector<std::string> params;
   std::vector<Instruction> body;
   Environment env;
 

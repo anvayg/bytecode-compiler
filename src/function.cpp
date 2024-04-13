@@ -1,6 +1,6 @@
 #include "../include/ast.hpp"
 
-Function::Function(std::vector<ValueType> params, std::vector<Instruction> body,
+Function::Function(std::vector<std::string> params, std::vector<Instruction> body,
                    Environment env)
     : params(params), body(body), env(env) {}
 

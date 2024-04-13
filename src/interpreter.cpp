@@ -167,7 +167,14 @@ ValueType interpreter::eval(Code &bytecode, Environment &env) {
     } else if (op == OpCode::RELATIVE_JUMP) {
       program_counter += boost::get<int>(ins.arg);
     } else if (op == OpCode::MAKE_FUNCTION) {
+      int nargs = boost::get<int>(ins.arg);
+      std::vector<Instruction> body_code = boost::get<std::vector<Instruction>>(stack.top());
+      stack.pop();
+      std::vector<std::string> params = boost::get<std::vector<std::string>>(stack.top());
+      stack.pop();
       
+      Function f(params, body_code, env);
+      stack.push(std::make_shared<Function>(f));
     } else {
       throw std::runtime_error("Unsupported instruction");
     }
