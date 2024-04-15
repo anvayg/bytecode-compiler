@@ -4,6 +4,7 @@
 #include <stack>
 #include <stdexcept>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 interpreter::Code interpreter::compile(Expression &e) {
@@ -25,6 +26,25 @@ std::vector<Instruction> Compiler::visit(StringConstant &constant) {
 
 std::vector<Instruction> Compiler::visit(BinaryOperation &binOp) {
   std::vector<Instruction> ins;
+
+  char op = binOp.getOperator();
+  std::vector<Instruction> left_compiled = binOp.getLeft().accept(*this);
+  std::vector<Instruction> right_compiled = binOp.getRight().accept(*this);
+  ins.insert(ins.end(), left_compiled.begin(), left_compiled.end());
+  ins.insert(ins.end(), right_compiled.begin(), right_compiled.end());
+
+  if (op == '+') {
+    Instruction add(OpCode::ADD, 0);
+    ins.push_back(add);
+
+  } else if (op == '-') {
+    Instruction sub(OpCode::SUB, 0);
+    ins.push_back(sub);
+
+  } else if (op == '*') {
+    Instruction mul(OpCode::MUL, 0);
+    ins.push_back(mul);
+  }
 
   return ins;
 }
@@ -58,16 +78,19 @@ std::vector<Instruction> Compiler::visit(ExpressionList &list) {
       auto &params = exps[1];
       const ExpressionList *listPtr =
           dynamic_cast<const ExpressionList *>(std::move(params.get()));
-      if (!listPtr) throw std::runtime_error("Invalid params");
+      if (!listPtr)
+        throw std::runtime_error("Invalid params");
       else {
         // Make list of parameters;
         std::vector<std::string> paramStrings;
-        for (const auto& ptr : listPtr->getExpressions()) {
+        for (const auto &ptr : listPtr->getExpressions()) {
           const StringConstant *strConstPtr =
-          dynamic_cast<const StringConstant *>(ptr.get());
+              dynamic_cast<const StringConstant *>(ptr.get());
 
-          if (!strConstPtr) throw std::runtime_error("Invalid param");
-          else paramStrings.push_back(strConstPtr->getValue());
+          if (!strConstPtr)
+            throw std::runtime_error("Invalid param");
+          else
+            paramStrings.push_back(strConstPtr->getValue());
         }
         // Instruction for loading parameters
         Instruction load_params(OpCode::LOAD_CONST, paramStrings);
@@ -168,13 +191,63 @@ ValueType interpreter::eval(Code &bytecode, Environment &env) {
       program_counter += boost::get<int>(ins.arg);
     } else if (op == OpCode::MAKE_FUNCTION) {
       int nargs = boost::get<int>(ins.arg);
-      std::vector<Instruction> body_code = boost::get<std::vector<Instruction>>(stack.top());
+      std::vector<Instruction> body_code =
+          boost::get<std::vector<Instruction>>(stack.top());
       stack.pop();
-      std::vector<std::string> params = boost::get<std::vector<std::string>>(stack.top());
+      std::vector<std::string> params =
+          boost::get<std::vector<std::string>>(stack.top());
       stack.pop();
-      
+
       Function f(params, body_code, env);
       stack.push(std::make_shared<Function>(f));
+    } else if (op == OpCode::CALL_FUNCTION) {
+      // Pop args off stack
+      std::vector<ValueType> args;
+      int nargs = boost::get<int>(ins.arg);
+      for (int i = 0; i < nargs; i++) {
+        args.push_back(stack.top());
+        stack.pop();
+      }
+
+      // Pop function
+      auto fn = stack.top();
+      std::shared_ptr<Function> fn_ptr =
+          boost::get<std::shared_ptr<Function>>(fn);
+
+      // Make function environment
+      std::unordered_map<std::string, ValueType> actuals_record;
+      for (int i = 0; i < args.size(); i++) {
+        std::string param = fn_ptr->params.at(i);
+        ValueType arg = args.at(i);
+        actuals_record.insert_or_assign(param, arg);
+      }
+      Environment fn_env = Environment(actuals_record, &fn_ptr->env);
+
+      // Evaluate function and push result on to the stack
+      ValueType result = eval(fn_ptr->body, fn_env);
+      stack.push(result);
+
+    } else if (op == OpCode::ADD) {
+      int operand2 = boost::get<int>(stack.top());
+      stack.pop();
+      int operand1 = boost::get<int>(stack.top());
+      stack.pop();
+      stack.push(operand1 + operand2);
+
+    } else if (op == OpCode::SUB) {
+      int operand2 = boost::get<int>(stack.top());
+      stack.pop();
+      int operand1 = boost::get<int>(stack.top());
+      stack.pop();
+      stack.push(operand1 - operand2);
+
+    } else if (op == OpCode::MUL) {
+      int operand2 = boost::get<int>(stack.top());
+      stack.pop();
+      int operand1 = boost::get<int>(stack.top());
+      stack.pop();
+      stack.push(operand1 * operand2);
+
     } else {
       throw std::runtime_error("Unsupported instruction");
     }

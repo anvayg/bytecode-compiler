@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <memory>
 #include <utility>
 #define BOOST_TEST_MODULE Compiler Tests
@@ -111,6 +112,37 @@ BOOST_AUTO_TEST_CASE(compile_and_eval_conditions_with_vars) {
   BOOST_TEST(boost::get<int>(result) == 3);
 }
 
-BOOST_AUTO_TEST_CASE(compile_function) {
-  
+BOOST_AUTO_TEST_CASE(compile_arithmetic) {
+  // Addition
+  std::unique_ptr<Expression> expr1 = std::make_unique<Constant>(1);
+  std::unique_ptr<Expression> expr2 = std::make_unique<Constant>(2);
+  BinaryOperation binop_add('+', std::move(expr1), std::move(expr2));
+
+  Code bytecode = interpreter::compile(binop_add);
+  Environment env = Environment();
+  auto result = interpreter::eval(bytecode, env);
+  BOOST_TEST(boost::get<int>(result) == 3);
+
+  // Subtraction
+  bytecode.clear();
+  std::unique_ptr<Expression> expr3 = std::make_unique<Constant>(1);
+  std::unique_ptr<Expression> expr4 = std::make_unique<Constant>(2);
+  BinaryOperation binop_sub('-', std::move(expr3), std::move(expr4));
+  bytecode = interpreter::compile(binop_sub);
+  result = interpreter::eval(bytecode, env);
+  BOOST_TEST(boost::get<int>(result) == -1);
+
+  // Nested binop
+  std::unique_ptr<Expression> expr5 = std::make_unique<Constant>(1);
+  std::unique_ptr<Expression> expr6 = std::make_unique<Constant>(2);
+  std::unique_ptr<Expression> expr7 = std::make_unique<Constant>(3);
+  BinaryOperation binop_add_2('+', std::move(expr5), std::move(expr6));
+  std::unique_ptr<Expression> expr8 =
+      std::make_unique<BinaryOperation>(std::move(binop_add_2));
+  BinaryOperation nested_binop('-', std::move(expr8), std::move(expr7));
+  bytecode = interpreter::compile(nested_binop);
+  result = interpreter::eval(bytecode, env);
+  BOOST_TEST(boost::get<int>(result) == 0);
 }
+
+BOOST_AUTO_TEST_CASE(compile_function) {}

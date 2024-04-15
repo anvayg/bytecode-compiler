@@ -3,11 +3,11 @@
 #ifndef EXPRESSION_HPP
 #define EXPRESSION_HPP
 
+#include <boost/variant.hpp>
 #include <iostream>
 #include <memory>
 #include <string>
 #include <vector>
-#include <boost/variant.hpp>
 
 // Forward declarations
 class Constant;
@@ -27,7 +27,10 @@ enum class OpCode {
   RELATIVE_JUMP,
   RELATIVE_JUMP_IF_TRUE,
   MAKE_FUNCTION,
-  CALL_FUNCTION
+  CALL_FUNCTION,
+  ADD,
+  SUB,
+  MUL
 };
 
 typedef boost::variant<int, std::string, std::vector<std::string>,
@@ -73,7 +76,6 @@ public:
 
   friend std::ostream &operator<<(std::ostream &os, const Environment &env);
 };
-
 
 // Visitor interface
 class ExpressionVisitor {
