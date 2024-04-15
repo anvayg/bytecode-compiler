@@ -1,4 +1,3 @@
-#include <algorithm>
 #include <memory>
 #include <utility>
 #define BOOST_TEST_MODULE Compiler Tests

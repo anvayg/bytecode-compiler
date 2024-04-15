@@ -64,7 +64,7 @@ struct InstructionPrinter : public boost::static_visitor<void> {
   }
 
   void operator()(const std::shared_ptr<Function> ptr) const {
-    // TODO
+    os_ << ptr.get();
   }
 
   void operator()(const std::vector<Instruction> &instructions) const {
