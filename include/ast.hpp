@@ -14,6 +14,7 @@ class Constant;
 class BinaryOperation;
 class StringConstant;
 class ExpressionList;
+class Lambda;
 class Instruction;
 class Function;
 class Environment;
@@ -85,6 +86,7 @@ public:
   virtual void visit(BinaryOperation &binaryOperation) = 0;
   virtual void visit(StringConstant &stringConstant) = 0;
   virtual void visit(ExpressionList &expressionList) = 0;
+  virtual void visit(Lambda &lambda) = 0;
 };
 
 // Visitor interface for compilation
@@ -95,6 +97,7 @@ public:
   virtual std::vector<Instruction> visit(BinaryOperation &binaryOperation) = 0;
   virtual std::vector<Instruction> visit(StringConstant &stringConstant) = 0;
   virtual std::vector<Instruction> visit(ExpressionList &expressionList) = 0;
+  virtual std::vector<Instruction> visit(Lambda &lambda) = 0;
 };
 
 // Base class representing an expression
@@ -188,12 +191,22 @@ public:
 // Derived class representing a lambda (function)
 class Lambda : public Expression {
 private:
-  std::vector<StringConstant> params;  // 
+  std::vector<StringConstant> params; //
   std::unique_ptr<Expression> body;
 
 public:
-  // TODO
+  Lambda(std::vector<StringConstant> params, std::unique_ptr<Expression> body)
+      : params(params), body(std::move(body)) {}
 
+  const std::vector<StringConstant> &getParams() const { return params; }
+
+  Expression &getBody() const { return *body; }
+
+  void accept(ExpressionVisitor &visitor) override { visitor.visit(*this); }
+
+  std::vector<Instruction> accept(CompilerVisitor &visitor) override {
+    return visitor.visit(*this);
+  }
 };
 
 // Concrete visitor implementation
@@ -208,6 +221,7 @@ public:
   void visit(BinaryOperation &binaryOperation) override;
   void visit(StringConstant &stringConstant) override;
   void visit(ExpressionList &expressionList) override;
+  void visit(Lambda &lambda) override;
 };
 
 // Concrete visitor implementation
@@ -219,6 +233,7 @@ public:
   std::vector<Instruction> visit(BinaryOperation &binaryOperation) override;
   std::vector<Instruction> visit(StringConstant &stringConstant) override;
   std::vector<Instruction> visit(ExpressionList &expressionList) override;
+  std::vector<Instruction> visit(Lambda &lambda) override;
 };
 
 // Definition of Function

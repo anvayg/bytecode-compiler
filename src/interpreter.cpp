@@ -52,7 +52,7 @@ std::vector<Instruction> Compiler::visit(BinaryOperation &binOp) {
 std::vector<Instruction> Compiler::visit(ExpressionList &list) {
   std::vector<Instruction> ins;
   const auto &exps = list.getExpressions();
-  
+
   auto &first = exps[0];
   const StringConstant *strConstPtr =
       dynamic_cast<const StringConstant *>(first.get());
@@ -73,39 +73,6 @@ std::vector<Instruction> Compiler::visit(ExpressionList &list) {
       throw std::runtime_error("Unsupported instruction");
     }
 
-  } else if (strConstPtr && strConstPtr->getValue() == "lambda") {
-    auto &params = exps[1];
-    const ExpressionList *listPtr =
-        dynamic_cast<const ExpressionList *>(std::move(params.get()));
-    if (!listPtr)
-      throw std::runtime_error("Invalid params");
-    else {
-      // Make list of parameters;
-      std::vector<std::string> paramStrings;
-      for (const auto &ptr : listPtr->getExpressions()) {
-        const StringConstant *strConstPtr =
-            dynamic_cast<const StringConstant *>(ptr.get());
-
-        if (!strConstPtr)
-          throw std::runtime_error("Invalid param");
-        else
-          paramStrings.push_back(strConstPtr->getValue());
-      }
-      // Instruction for loading parameters
-      Instruction load_params(OpCode::LOAD_CONST, paramStrings);
-
-      // Instruction for loading body
-      auto &body = exps[2];
-      std::vector<Instruction> body_ins = body.get()->accept(*this);
-      Instruction load_body(OpCode::LOAD_CONST, body_ins);
-
-      Instruction mk_function(OpCode::MAKE_FUNCTION, 1);
-
-      // Put instructions together
-      ins.push_back(load_params);
-      ins.push_back(load_body);
-      ins.push_back(mk_function);
-    }
   } else if (strConstPtr && strConstPtr->getValue() == "if") {
     // Compile condition, true and false branches
     auto &cond = exps[1];
@@ -133,6 +100,32 @@ std::vector<Instruction> Compiler::visit(ExpressionList &list) {
   } else {
     throw std::runtime_error("Unsupported instruction");
   }
+
+  return ins;
+}
+
+std::vector<Instruction> Compiler::visit(Lambda &lambda) {
+  std::vector<Instruction> ins;
+  auto &params = lambda.getParams();
+  std::vector<std::string> paramStrings;
+  for (const auto param : params) {
+    paramStrings.push_back(param.getValue());
+  }
+
+  // Instruction for loading parameters
+  Instruction load_params(OpCode::LOAD_CONST, paramStrings);
+
+  // Instruction for loading body
+  auto &body = lambda.getBody();
+  std::vector<Instruction> body_ins = body.accept(*this);
+  Instruction load_body(OpCode::LOAD_CONST, body_ins);
+
+  Instruction mk_function(OpCode::MAKE_FUNCTION, 1);
+
+  // Put instructions together
+  ins.push_back(load_params);
+  ins.push_back(load_body);
+  ins.push_back(mk_function);
 
   return ins;
 }
