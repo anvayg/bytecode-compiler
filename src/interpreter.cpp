@@ -52,7 +52,7 @@ std::vector<Instruction> Compiler::visit(BinaryOperation &binOp) {
 std::vector<Instruction> Compiler::visit(ExpressionList &list) {
   std::vector<Instruction> ins;
   const auto &exps = list.getExpressions();
-
+  
   auto &first = exps[0];
   const StringConstant *strConstPtr =
       dynamic_cast<const StringConstant *>(first.get());
@@ -131,14 +131,7 @@ std::vector<Instruction> Compiler::visit(ExpressionList &list) {
     ins.insert(ins.end(), true_code.begin(), true_code.end());
 
   } else {
-    // Assume function call
-    for (const auto& exp : exps) {
-      std::vector<Instruction> exp_code = exp.get()->accept(*this);
-      ins.insert(ins.end(), exp_code.begin(), exp_code.end());
-    }
-
-    Instruction call(OpCode::CALL_FUNCTION, exps.size() - 1);
-    ins.push_back(call);
+    throw std::runtime_error("Unsupported instruction");
   }
 
   return ins;

@@ -185,6 +185,17 @@ public:
   }
 };
 
+// Derived class representing a lambda (function)
+class Lambda : public Expression {
+private:
+  std::vector<StringConstant> params;  // 
+  std::unique_ptr<Expression> body;
+
+public:
+  // TODO
+
+};
+
 // Concrete visitor implementation
 class PrintVisitor : public ExpressionVisitor {
 private:

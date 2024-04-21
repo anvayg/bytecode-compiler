@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <memory>
 #include <utility>
 #define BOOST_TEST_MODULE Compiler Tests
@@ -13,13 +14,14 @@
 
 using Code = std::vector<Instruction>;
 
-std::ostream& operator<<(std::ostream& os, const std::vector<Instruction>& vec) {
-    os << "[ ";
-    for (const auto& inst : vec) {
-        os << inst << ",\n";
-    }
-    os << "]";
-    return os;
+std::ostream &operator<<(std::ostream &os,
+                         const std::vector<Instruction> &vec) {
+  os << "[ ";
+  for (const auto &inst : vec) {
+    os << inst << ",\n";
+  }
+  os << "]";
+  return os;
 }
 
 BOOST_AUTO_TEST_CASE(compile_int) {
@@ -156,20 +158,23 @@ BOOST_AUTO_TEST_CASE(compile_arithmetic) {
 
 BOOST_AUTO_TEST_CASE(compile_function) {
   // (lambda (x) (x + 1))
-  std::unique_ptr<Expression> lambda = std::make_unique<StringConstant>("lambda");
-  
+  std::unique_ptr<Expression> lambda =
+      std::make_unique<StringConstant>("lambda");
+
   // params
   std::unique_ptr<Expression> x = std::make_unique<StringConstant>("x");
   std::vector<std::unique_ptr<Expression>> exps;
   exps.push_back(std::move(x));
   ExpressionList params(std::move(exps));
-  std::unique_ptr<Expression> param_exp = std::make_unique<ExpressionList>(std::move(params));
+  std::unique_ptr<Expression> param_exp =
+      std::make_unique<ExpressionList>(std::move(params));
 
   // body
   std::unique_ptr<Expression> expr1 = std::make_unique<StringConstant>("x");
   std::unique_ptr<Expression> expr2 = std::make_unique<Constant>(1);
   BinaryOperation binop_add('+', std::move(expr1), std::move(expr2));
-  std::unique_ptr<Expression> binop_add_exp = std::make_unique<BinaryOperation>(std::move(binop_add));
+  std::unique_ptr<Expression> binop_add_exp =
+      std::make_unique<BinaryOperation>(std::move(binop_add));
 
   std::vector<std::unique_ptr<Expression>> function_exps;
   function_exps.push_back(std::move(lambda));
@@ -178,4 +183,46 @@ BOOST_AUTO_TEST_CASE(compile_function) {
   ExpressionList l(std::move(function_exps));
 
   Code bytecode = interpreter::compile(l);
+}
+
+BOOST_AUTO_TEST_CASE(compile_and_eval_function_call) {
+  // ((lambda (x) (x + 1)) 5)
+  std::unique_ptr<Expression> lambda =
+      std::make_unique<StringConstant>("lambda");
+
+  // params
+  std::unique_ptr<Expression> x = std::make_unique<StringConstant>("x");
+  std::vector<std::unique_ptr<Expression>> exps;
+  exps.push_back(std::move(x));
+  ExpressionList params(std::move(exps));
+  std::unique_ptr<Expression> param_exp =
+      std::make_unique<ExpressionList>(std::move(params));
+
+  // body
+  std::unique_ptr<Expression> expr1 = std::make_unique<StringConstant>("x");
+  std::unique_ptr<Expression> expr2 = std::make_unique<Constant>(1);
+  BinaryOperation binop_add('+', std::move(expr1), std::move(expr2));
+  std::unique_ptr<Expression> binop_add_exp =
+      std::make_unique<BinaryOperation>(std::move(binop_add));
+
+  // function_exp
+  std::vector<std::unique_ptr<Expression>> function_exps;
+  function_exps.push_back(std::move(lambda));
+  function_exps.push_back(std::move(param_exp));
+  function_exps.push_back(std::move(binop_add_exp));
+  ExpressionList l(std::move(function_exps));
+  std::unique_ptr<Expression> function_exp =
+      std::make_unique<ExpressionList>(std::move(function_exps));
+
+  // arg
+  std::unique_ptr<Expression> arg = std::make_unique<Constant>(1);
+
+  // Make call expression
+  std::vector<std::unique_ptr<Expression>> call_exps;
+  call_exps.push_back(std::move(function_exp));
+  call_exps.push_back(std::move(arg));
+  ExpressionList call(std::move(call_exps));
+
+  Code bytecode = interpreter::compile(l);
+  std::cout << bytecode << "\n";
 }
