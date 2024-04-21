@@ -53,98 +53,92 @@ std::vector<Instruction> Compiler::visit(ExpressionList &list) {
   std::vector<Instruction> ins;
   const auto &exps = list.getExpressions();
 
-  if (exps.size() == 3) {
-    auto &first = exps[0];
+  auto &first = exps[0];
+  const StringConstant *strConstPtr =
+      dynamic_cast<const StringConstant *>(first.get());
+  if (strConstPtr && strConstPtr->getValue() == "val") {
+    auto &name = exps[1];
     const StringConstant *strConstPtr =
-        dynamic_cast<const StringConstant *>(first.get());
-    if (strConstPtr && strConstPtr->getValue() == "val") {
-      auto &name = exps[1];
-      const StringConstant *strConstPtr =
-          dynamic_cast<const StringConstant *>(name.get());
+        dynamic_cast<const StringConstant *>(name.get());
 
-      if (strConstPtr) {
-        Instruction store(OpCode::STORE_NAME, strConstPtr->getValue());
+    if (strConstPtr) {
+      Instruction store(OpCode::STORE_NAME, strConstPtr->getValue());
 
-        auto &subexp = exps[2];
-        std::vector<Instruction> subexp_code = subexp.get()->accept(*this);
+      auto &subexp = exps[2];
+      std::vector<Instruction> subexp_code = subexp.get()->accept(*this);
 
-        ins.insert(ins.end(), subexp_code.begin(), subexp_code.end());
-        ins.push_back(store);
-      } else {
-        throw std::runtime_error("Unsupported instruction");
-      }
-
-    } else if (strConstPtr && strConstPtr->getValue() == "lambda") {
-      auto &params = exps[1];
-      const ExpressionList *listPtr =
-          dynamic_cast<const ExpressionList *>(std::move(params.get()));
-      if (!listPtr)
-        throw std::runtime_error("Invalid params");
-      else {
-        // Make list of parameters;
-        std::vector<std::string> paramStrings;
-        for (const auto &ptr : listPtr->getExpressions()) {
-          const StringConstant *strConstPtr =
-              dynamic_cast<const StringConstant *>(ptr.get());
-
-          if (!strConstPtr)
-            throw std::runtime_error("Invalid param");
-          else
-            paramStrings.push_back(strConstPtr->getValue());
-        }
-        // Instruction for loading parameters
-        Instruction load_params(OpCode::LOAD_CONST, paramStrings);
-
-        // Instruction for loading body
-        auto &body = exps[2];
-        std::vector<Instruction> body_ins = body.get()->accept(*this);
-        Instruction load_body(OpCode::LOAD_CONST, body_ins);
-
-        Instruction mk_function(OpCode::MAKE_FUNCTION, 1);
-
-        // Put instructions together
-        ins.push_back(load_params);
-        ins.push_back(load_body);
-        ins.push_back(mk_function);
-      }
+      ins.insert(ins.end(), subexp_code.begin(), subexp_code.end());
+      ins.push_back(store);
     } else {
       throw std::runtime_error("Unsupported instruction");
     }
 
-  } else if (exps.size() == 4) {
-    auto &first = exps[0];
-    const StringConstant *strConstPtr =
-        dynamic_cast<const StringConstant *>(first.get());
-    if (strConstPtr && strConstPtr->getValue() == "if") {
-      // Compile condition, true and false branches
-      auto &cond = exps[1];
-      std::vector<Instruction> cond_code = cond.get()->accept(*this);
+  } else if (strConstPtr && strConstPtr->getValue() == "lambda") {
+    auto &params = exps[1];
+    const ExpressionList *listPtr =
+        dynamic_cast<const ExpressionList *>(std::move(params.get()));
+    if (!listPtr)
+      throw std::runtime_error("Invalid params");
+    else {
+      // Make list of parameters;
+      std::vector<std::string> paramStrings;
+      for (const auto &ptr : listPtr->getExpressions()) {
+        const StringConstant *strConstPtr =
+            dynamic_cast<const StringConstant *>(ptr.get());
 
-      auto &true_branch = exps[2];
-      std::vector<Instruction> true_code = true_branch.get()->accept(*this);
+        if (!strConstPtr)
+          throw std::runtime_error("Invalid param");
+        else
+          paramStrings.push_back(strConstPtr->getValue());
+      }
+      // Instruction for loading parameters
+      Instruction load_params(OpCode::LOAD_CONST, paramStrings);
 
-      auto &false_branch = exps[3];
-      std::vector<Instruction> false_code = false_branch.get()->accept(*this);
+      // Instruction for loading body
+      auto &body = exps[2];
+      std::vector<Instruction> body_ins = body.get()->accept(*this);
+      Instruction load_body(OpCode::LOAD_CONST, body_ins);
 
-      // Construct relative jumps
-      Instruction jmp_to_end(OpCode::RELATIVE_JUMP,
-                             static_cast<int>(true_code.size()));
-      Instruction jmp_to_true(OpCode::RELATIVE_JUMP_IF_TRUE,
-                              static_cast<int>(false_code.size()) + 1);
+      Instruction mk_function(OpCode::MAKE_FUNCTION, 1);
 
       // Put instructions together
-      ins.insert(ins.end(), cond_code.begin(), cond_code.end());
-      ins.push_back(jmp_to_true);
-      ins.insert(ins.end(), false_code.begin(), false_code.end());
-      ins.push_back(jmp_to_end);
-      ins.insert(ins.end(), true_code.begin(), true_code.end());
-
-    } else {
-      throw std::runtime_error("Unsupported instruction");
+      ins.push_back(load_params);
+      ins.push_back(load_body);
+      ins.push_back(mk_function);
     }
+  } else if (strConstPtr && strConstPtr->getValue() == "if") {
+    // Compile condition, true and false branches
+    auto &cond = exps[1];
+    std::vector<Instruction> cond_code = cond.get()->accept(*this);
+
+    auto &true_branch = exps[2];
+    std::vector<Instruction> true_code = true_branch.get()->accept(*this);
+
+    auto &false_branch = exps[3];
+    std::vector<Instruction> false_code = false_branch.get()->accept(*this);
+
+    // Construct relative jumps
+    Instruction jmp_to_end(OpCode::RELATIVE_JUMP,
+                           static_cast<int>(true_code.size()));
+    Instruction jmp_to_true(OpCode::RELATIVE_JUMP_IF_TRUE,
+                            static_cast<int>(false_code.size()) + 1);
+
+    // Put instructions together
+    ins.insert(ins.end(), cond_code.begin(), cond_code.end());
+    ins.push_back(jmp_to_true);
+    ins.insert(ins.end(), false_code.begin(), false_code.end());
+    ins.push_back(jmp_to_end);
+    ins.insert(ins.end(), true_code.begin(), true_code.end());
 
   } else {
-    throw std::runtime_error("Unsupported instruction");
+    // Assume function call
+    for (const auto& exp : exps) {
+      std::vector<Instruction> exp_code = exp.get()->accept(*this);
+      ins.insert(ins.end(), exp_code.begin(), exp_code.end());
+    }
+
+    Instruction call(OpCode::CALL_FUNCTION, exps.size() - 1);
+    ins.push_back(call);
   }
 
   return ins;
