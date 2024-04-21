@@ -98,7 +98,23 @@ std::vector<Instruction> Compiler::visit(ExpressionList &list) {
     ins.insert(ins.end(), true_code.begin(), true_code.end());
 
   } else {
-    throw std::runtime_error("Unsupported instruction");
+    const Lambda *lambdaPtr = dynamic_cast<const Lambda *>(first.get());
+    if (lambdaPtr) {
+      std::vector<Instruction> lambda_code = exps.at(0)->accept(*this);
+      ins.insert(ins.end(), lambda_code.begin(), lambda_code.end());
+
+      // args
+      for (int i = 1; i < exps.size(); i++) {
+        std::vector<Instruction> arg_code = exps[i]->accept(*this);
+        ins.insert(ins.end(), arg_code.begin(), arg_code.end());
+      }
+
+      Instruction call(OpCode::CALL_FUNCTION, exps.size() - 1);
+      ins.push_back(call);
+
+    } else {
+      throw std::runtime_error("Unsupported instruction");
+    }
   }
 
   return ins;

@@ -24,7 +24,7 @@ std::ostream &operator<<(std::ostream &os, const OpCode &opCode) {
     os << "MAKE_FUNCTION";
     break;
   case OpCode::CALL_FUNCTION:
-    os << "MAKE_FUNCTION";
+    os << "CALL_FUNCTION";
     break;
   case OpCode::ADD:
     os << "ADD";
