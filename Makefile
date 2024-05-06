@@ -9,7 +9,7 @@ CXX = /opt/homebrew/opt/llvm@17/bin/clang++
 INCLUDE_DIRS = -Iinclude/
 TEST_INCLUDE_DIRS = -I/opt/homebrew/Cellar/boost/1.84.0_1/include/
 
-# Link libraries
+# Link libraries (the path to the C++ boost library on your machine)
 TEST_FLAGS = -L/opt/homebrew/Cellar/boost/1.84.0_1/lib -l boost_unit_test_framework
 
 # Source files

@@ -7,6 +7,10 @@
 #include <unordered_map>
 #include <vector>
 
+// interpreter::Code compile(std::vector<Expression> exps) {
+//   Compiler compiler;
+// }
+
 interpreter::Code interpreter::compile(Expression &e) {
   Compiler compiler;
   return e.accept(compiler);
