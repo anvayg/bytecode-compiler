@@ -9,16 +9,16 @@ std::ostream &operator<<(std::ostream &os, Expression &expr) {
 
 void PrintVisitor::visit(Constant &constant) { os << constant.getValue(); }
 
+void PrintVisitor::visit(StringConstant &stringConstant) {
+  os << stringConstant.getValue();
+}
+
 void PrintVisitor::visit(BinaryOperation &binaryOperation) {
   os << "(";
   binaryOperation.getLeft().accept(*this);
   os << " " << binaryOperation.getOperator() << " ";
   binaryOperation.getRight().accept(*this);
   os << ")";
-}
-
-void PrintVisitor::visit(StringConstant &stringConstant) {
-  os << stringConstant.getValue();
 }
 
 void PrintVisitor::visit(ExpressionList &expressionList) {

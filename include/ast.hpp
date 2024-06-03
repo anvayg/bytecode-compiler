@@ -128,6 +128,23 @@ public:
   }
 };
 
+// Derived class representing a string constant
+class StringConstant : public Expression {
+private:
+  std::string value;
+
+public:
+  StringConstant(const std::string &val) : value(val) {}
+
+  const std::string &getValue() const { return value; }
+
+  void accept(ExpressionVisitor &visitor) override { visitor.visit(*this); }
+
+  std::vector<Instruction> accept(CompilerVisitor &visitor) override {
+    return visitor.visit(*this);
+  }
+};
+
 // Derived class representing a binary operation
 class BinaryOperation : public Expression {
 private:
@@ -143,23 +160,6 @@ public:
   char getOperator() const { return op; }
   Expression &getLeft() const { return *left; }
   Expression &getRight() const { return *right; }
-
-  void accept(ExpressionVisitor &visitor) override { visitor.visit(*this); }
-
-  std::vector<Instruction> accept(CompilerVisitor &visitor) override {
-    return visitor.visit(*this);
-  }
-};
-
-// Derived class representing a string constant
-class StringConstant : public Expression {
-private:
-  std::string value;
-
-public:
-  StringConstant(const std::string &val) : value(val) {}
-
-  const std::string &getValue() const { return value; }
 
   void accept(ExpressionVisitor &visitor) override { visitor.visit(*this); }
 
