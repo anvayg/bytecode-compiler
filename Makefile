@@ -44,7 +44,7 @@ build/%.o: test/%.cpp
 
 # Rule to build the test executable
 test: $(OBJS) $(TEST_OBJS)
-	$(CXX) $(TEST_FLAGS) $(TEST_INCLUDE_DIRS) $^ -o $(TEST_TARGET)
+	$(CXX) $(TEST_INCLUDE_DIRS) $^ -o $(TEST_TARGET)
 
 # Clean target
 clean:
