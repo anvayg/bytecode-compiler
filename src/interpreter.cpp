@@ -102,6 +102,8 @@ std::vector<Instruction> Compiler::visit(ExpressionList &list) {
     ins.insert(ins.end(), true_code.begin(), true_code.end());
 
   } else {
+    // TODO: This allows function calls where functions are defined and immediately applied.
+    // Extend to allow previously defined functions to be called.
     const Lambda *lambdaPtr = dynamic_cast<const Lambda *>(first.get());
     if (lambdaPtr) {
       std::vector<Instruction> lambda_code = exps.at(0)->accept(*this);
