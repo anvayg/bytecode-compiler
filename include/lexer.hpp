@@ -33,10 +33,18 @@ private:
   int line = 1;
   std::string source;
   std::vector<Token> tokens;
+  bool hadError = false;
 
   void lexToken();
+  char advance();
+  bool match(char expected);
+  char peek();
   void addToken(TokenType t);
   void addToken(TokenType t, std::string value);
+  bool isAtEnd();
+  bool isDigit(char c);
+  void string();
+  void number();
 
 public:
   Lexer(std::string source);
