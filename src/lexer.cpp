@@ -54,8 +54,13 @@ void Lexer::lexToken() {
   default:
     if (isDigit(currentChar)) {
       number();
-      break;
+    } else if (isAlpha(currentChar)) {
+      identifier();
+    } else {
+      Error::report(line, "Unexpected character");
+      this->hadError = true;
     }
+    break;
   }
 }
 
@@ -82,47 +87,80 @@ char Lexer::peek() {
     return source.at(current);
 }
 
-void Lexer::addToken(TokenType token) { addToken(token, nullptr); }
+void Lexer::addToken(TokenType token) { addToken(token, ""); }
 
 void Lexer::addToken(TokenType token, std::string value) {
-  this->tokens.push_back(Token{.token = token, .value = value, .line = line});
+  Token t = Token{.token = token, .value = value, .line = line};
+  this->tokens.push_back(t);
 }
 
 bool Lexer::isAtEnd() { return current >= source.length(); }
 
-bool Lexer::isDigit(char c) {
-  return c >= '0' && c <= '9';
+bool Lexer::isDigit(char c) { return c >= '0' && c <= '9'; }
+
+bool Lexer::isAlpha(char c) {
+  return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c == '_');
 }
+
+bool Lexer::isAlphaNumeric(char c) { return (isAlpha(c) || isDigit(c)); }
 
 void Lexer::string() {
   // Go till end of string
   // Escape sequences not supported
-  while (peek() != '"' || !isAtEnd()) {
+  while (peek() != '"' && !isAtEnd()) {
     if (peek() == '\n') line++;
     advance();
   }
 
   if (isAtEnd()) {
     Error::report(line, "Unterminated string");
+    this->hadError=true;
     return;
   }
 
+  // Closing "
+  advance();
+
   // Get string literal
-  std::string value = this->source.substr(start + 1, current);
+  std::string value = this->source.substr(start + 1, current - 1);
   addToken(TokenType::StrConstant, value);
 }
 
 void Lexer::number() {
   // Go till end of number
-  while (isDigit(peek()) && !isAtEnd()) advance();
+  while (isDigit(peek()) && !isAtEnd())
+    advance();
 
   if (isAtEnd()) {
     Error::report(line, "Lisp program should end with ')'");
+    this->hadError=true;
     return;
   }
 
   std::string value = source.substr(start, current);
   addToken(TokenType::Constant, value);
+}
+
+void Lexer::identifier() {
+  while (isAlphaNumeric(peek()) && !isAtEnd()) advance();
+
+  if (isAtEnd()) {
+    Error::report(line, "Lisp program should end with ')'");
+    this->hadError=true;
+    return;
+  }
+
+  // Check for reserved keywords
+  std::string text = source.substr(start, current);
+  if (text == "lambda") {
+    addToken(TokenType::Lambda, text);
+  } else {
+    addToken(TokenType::Identifier, text);
+  }
+}
+
+Lexer::Lexer(std::string source) {
+  this->source = source;
 }
 
 std::vector<Token> Lexer::lex() {
@@ -131,8 +169,12 @@ std::vector<Token> Lexer::lex() {
     start = current;
     Lexer::lexToken();
   }
-
+  
   tokens.push_back(
-      Token{.token = TokenType::Eof, .value = nullptr, .line = line});
+      Token{.token = TokenType::Eof, .value = "", .line = line});
   return tokens;
+}
+
+bool Lexer::lexError() {
+  return this->hadError;
 }

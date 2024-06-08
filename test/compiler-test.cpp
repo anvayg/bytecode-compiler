@@ -4,6 +4,7 @@
 
 #include <boost/test/included/unit_test.hpp>
 
+#include "../include/lexer.hpp"
 #include "../include/ast.hpp"
 #include "../include/interpreter.hpp"
 
@@ -19,6 +20,38 @@ std::ostream &operator<<(std::ostream &os,
   }
   os << "]";
   return os;
+}
+
+BOOST_AUTO_TEST_CASE(lex_val) {
+    std::string text = "(val 5)";
+    Lexer lexer(text);
+    lexer.lex();
+    BOOST_TEST(!lexer.lexError());
+
+    text = "(val \"x\")";
+    Lexer lexer2(text);
+    BOOST_TEST(!lexer2.lexError());
+}
+
+BOOST_AUTO_TEST_CASE(lex_lambda) {
+    std::string text = "(lambda x (+ x 1))";
+    Lexer lexer(text);
+    lexer.lex();
+    BOOST_TEST(!lexer.lexError());
+}
+
+BOOST_AUTO_TEST_CASE(lex_with_newline) {
+    std::string text = "(val 5)\n(lambda x (+ x 1))";
+    Lexer lexer(text);
+    lexer.lex();
+    BOOST_TEST(!lexer.lexError());
+}
+
+BOOST_AUTO_TEST_CASE(lex_unterminated) {
+    std::string text = "(val \"x";
+    Lexer lexer(text);
+    lexer.lex();
+    BOOST_TEST(lexer.lexError());
 }
 
 BOOST_AUTO_TEST_CASE(compile_int) {
